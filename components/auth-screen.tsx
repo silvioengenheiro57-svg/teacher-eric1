@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
+import { getSiteUrl } from '@/lib/site-url';
 
 type AuthScreenProps = { mode: 'login' | 'register' };
 
@@ -58,7 +59,7 @@ export default function AuthScreen({ mode }: AuthScreenProps) {
       const supabase = createSupabaseBrowserClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: `${getSiteUrl(window.location.origin)}/auth/callback` },
       });
       if (error) throw error;
     } catch (err) {
