@@ -2202,6 +2202,7 @@ body{margin:0;background:var(--te-bg);color:var(--te-text);font-family:Arial,Hel
   .chat-backdrop { z-index: 61; inset: 68px 0 calc(58px + env(safe-area-inset-bottom)); }
   .chat-topbar { min-height: 48px; height: 48px; flex-basis: 48px; background: #fff; color: #263b33; }
   .chat-topbar strong, .chat-ready, .chat-menu-button { color: #263b33; }
+  .chat-menu-button { display: none; }
   .chat-menu-button:hover { background: #eef0f4; color: #263b33; }
   .chat-ready i { background: #16855d; }
   .chat-compose-area { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
