@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import { House, MessageCircle, Search, Send, Shield, UserRound, UserRoundPlus, Users } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { BookOpen, House, Menu, MessageCircle, Search, Send, Shield, UserRound, UserRoundPlus, Users, X } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const links = [
@@ -56,8 +56,43 @@ export function MobileBottomNavigation() {
 }
 
 export function MobileAppHeader() {
+	const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+	const router = useRouter();
+	const menuRef = useRef<HTMLDetailsElement>(null);
+	const [signOutError, setSignOutError] = useState('');
+	const [signingOut, setSigningOut] = useState(false);
+
+	async function signOut() {
+		if (signingOut) return;
+		setSigningOut(true);
+		setSignOutError('');
+		const { error } = await supabase.auth.signOut();
+		if (error) {
+			setSignOutError(`Não foi possível terminar a sessão: ${error.message}`);
+			setSigningOut(false);
+			return;
+		}
+		menuRef.current?.removeAttribute('open');
+		router.replace('/entrar');
+		router.refresh();
+	}
+
 	return <header className="mobile-app-header">
 		<Link href="/comunidade" className="mobile-app-brand"><span>Teacher Eric<span className="mobile-brand-period">.</span></span></Link>
+		<div className="mobile-app-actions">
+			<Link className="mobile-app-action" href="/pesquisar" aria-label="Pesquisar membro" title="Pesquisar membro"><Search size={22} strokeWidth={2.3} /></Link>
+			<details className="mobile-app-menu" ref={menuRef}>
+				<summary className="mobile-app-action" aria-label="Abrir menu" title="Abrir menu"><Menu size={23} strokeWidth={2.3} /></summary>
+				<nav aria-label="Menu da comunidade">
+					<Link href="/sobre-teacher-eric" onClick={() => menuRef.current?.removeAttribute('open')}><BookOpen size={18} /><span>Tudo sobre Teacher Eric</span></Link>
+					{signOutError && <p className="mobile-menu-error" role="alert">{signOutError}</p>}
+					<button type="button" onClick={() => void signOut()} disabled={signingOut}>
+						{signingOut ? <span className="mobile-menu-spinner" aria-hidden="true" /> : <X size={18} />}
+						<span>{signingOut ? 'A terminar sessão…' : 'Terminar sessão'}</span>
+					</button>
+				</nav>
+			</details>
+		</div>
 	</header>;
 }
 

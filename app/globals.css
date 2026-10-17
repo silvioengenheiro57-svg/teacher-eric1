@@ -1822,6 +1822,9 @@ body{margin:0;background:var(--te-bg);color:var(--te-text);font-family:Arial,Hel
   .app-layout:has(.mobile-app-header) > .main > .page-head .muted,
   .app-layout:has(.mobile-app-header) > .main > .page-head > .button { display: none; }
   .app-layout:has(.mobile-app-header) > .main > .page-head h1 { color: #10251c; font-family: var(--font-sans); font-size: 17px; font-weight: 750; letter-spacing: 0; }
+  .teacher-eric-about-intro { padding: 17px; }
+  .teacher-eric-about-grid { grid-template-columns: 1fr; gap: 9px; }
+  .teacher-eric-about-card { padding: 14px; }
   .profile-overview { gap: 12px; margin-bottom: 14px; border-radius: 12px; padding: 14px; }
   .profile-overview-avatar { width: 66px; height: 66px; flex-basis: 66px; font-size: 17px; }
   .profile-overview-person { gap: 10px; }
@@ -1925,6 +1928,16 @@ body{margin:0;background:var(--te-bg);color:var(--te-text);font-family:Arial,Hel
 .friendship-empty a { color: #176c4c; font-weight: 700; text-decoration: underline; }
 .friendship-feedback { margin: 0; }
 .community-search-page { display: grid; gap: 20px; max-width: 920px; margin: 0 auto; }
+.teacher-eric-about { display: grid; gap: 14px; max-width: 900px; margin: 0 auto; }
+.teacher-eric-about-intro { padding: 22px; }
+.teacher-eric-about-intro .eyebrow { margin: 0 0 8px; color: #176c4c; font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.teacher-eric-about-intro h2 { max-width: 620px; margin: 0; color: #20392d; font-size: clamp(21px, 4vw, 30px); line-height: 1.2; }
+.teacher-eric-about-intro > p:last-child { max-width: 700px; margin: 12px 0 0; color: #68766e; font-size: 14px; line-height: 1.65; }
+.teacher-eric-about-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.teacher-eric-about-card { display: flex; align-items: flex-start; gap: 12px; padding: 17px; }
+.teacher-eric-about-card > span { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 12px; background: #eaf2ed; color: #176c4c; }
+.teacher-eric-about-card h3 { margin: 1px 0 6px; color: #20392d; font-size: 15px; }
+.teacher-eric-about-card p { margin: 0; color: #68766e; font-size: 13px; line-height: 1.6; }
 .community-search-form { display: flex; align-items: center; gap: 10px; min-height: 54px; border: 1px solid #e0e7e2; border-radius: 14px; padding: 7px 9px 7px 15px; background: #fff; color: #6c7971; box-shadow: 0 2px 8px rgba(20,40,30,.04); }
 .community-search-form input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #21382d; font: inherit; font-size: 14px; }
 .community-search-form .button { min-height: 38px; padding: 7px 13px; }
@@ -2031,6 +2044,12 @@ body{margin:0;background:var(--te-bg);color:var(--te-text);font-family:Arial,Hel
   }
   .mobile-app-menu > nav a { display: flex; align-items: center; gap: 11px; min-height: 42px; padding: 0 10px; border-radius: 9px; color: #263b33; font-size: 14px; }
   .mobile-app-menu > nav a:hover { background: #f2f4f7; }
+  .mobile-app-menu > nav button { display: flex; min-height: 42px; align-items: center; gap: 11px; border: 0; border-radius: 9px; padding: 0 10px; background: transparent; color: #a33333; font-size: 14px; text-align: left; }
+  .mobile-app-menu > nav button:hover { background: #fff0f0; }
+  .mobile-app-menu > nav button:disabled { cursor: wait; opacity: .7; }
+  .mobile-app-menu > nav .mobile-menu-error { margin: 4px 8px; color: #a33333; font-size: 12px; line-height: 1.45; }
+  .mobile-menu-spinner { width: 18px; height: 18px; flex: 0 0 18px; border: 2px solid #e3b4b4; border-top-color: #a33333; border-radius: 50%; animation: mobile-menu-spin .7s linear infinite; }
+  @keyframes mobile-menu-spin { to { transform: rotate(360deg); } }
   .mobile-app-menu > nav img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
   .mobile-app-menu > nav svg { flex-shrink: 0; }
 

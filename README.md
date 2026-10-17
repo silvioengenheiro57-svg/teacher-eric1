@@ -33,6 +33,7 @@ npm run dev
 - `/comunidade` feed principal de publicações, gostos, comentários e membros
 - `/pesquisar` pesquisa membros e publicações
 - `/amizades` pedidos recebidos/enviados e lista de amigos
+- `/sobre-teacher-eric` informações sobre o percurso e a missão do Teacher Eric
 - `/chatbot` interface de tutor e endpoint de servidor `/api/chat`
 - `/perfil` edição do perfil do aluno e cartão de membro da comunidade
 - `/admin` painel inicial; **a proteção de papel admin ainda deve ser implementada antes de produção**
