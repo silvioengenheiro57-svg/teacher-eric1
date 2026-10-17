@@ -20,6 +20,20 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 
+-- 2b. Pedidos de amizade e amizades aceites.
+create table public.friend_requests (
+  id uuid primary key default gen_random_uuid(),
+  requester_id uuid not null references public.profiles(id) on delete cascade,
+  recipient_id uuid not null references public.profiles(id) on delete cascade,
+  status text not null default 'pending'
+    check (status in ('pending', 'accepted', 'declined')),
+  created_at timestamptz not null default now(),
+  constraint friend_requests_not_self check (requester_id <> recipient_id)
+);
+
+create unique index friend_requests_unique_pair_idx
+  on public.friend_requests (least(requester_id, recipient_id), greatest(requester_id, recipient_id));
+
 -- 3. Publicações
 create table public.posts (
   id uuid primary key default gen_random_uuid(),
@@ -124,6 +138,7 @@ for each row execute procedure public.set_updated_at();
 
 -- 10. Ativar segurança RLS
 alter table public.profiles enable row level security;
+alter table public.friend_requests enable row level security;
 alter table public.posts enable row level security;
 alter table public.comments enable row level security;
 alter table public.reactions enable row level security;
@@ -132,8 +147,11 @@ alter table public.chat_messages enable row level security;
 -- 11. Permissões SQL: apenas as necessárias
 revoke all on public.profiles, public.posts, public.comments,
   public.reactions, public.chat_messages from anon, authenticated;
+revoke all on public.friend_requests from anon, authenticated;
 
 grant select on public.profiles to authenticated;
+grant select, insert, delete on public.friend_requests to authenticated;
+grant update (status) on public.friend_requests to authenticated;
 grant update (full_name, avatar_url, bio, english_level, member_type, profession, center_name, experience)
   on public.profiles to authenticated;
 
@@ -151,6 +169,33 @@ create policy "profiles_update_own"
 on public.profiles for update to authenticated
 using (id = (select auth.uid()))
 with check (id = (select auth.uid()));
+
+create policy "members read their own friend requests"
+on public.friend_requests for select to authenticated
+using (requester_id = (select auth.uid()) or recipient_id = (select auth.uid()));
+
+create policy "members send their own friend requests"
+on public.friend_requests for insert to authenticated
+with check (
+  requester_id = (select auth.uid())
+  and recipient_id <> (select auth.uid())
+  and status = 'pending'
+);
+
+create policy "recipients respond to pending friend requests"
+on public.friend_requests for update to authenticated
+using (recipient_id = (select auth.uid()) and status = 'pending')
+with check (recipient_id = (select auth.uid()) and status in ('accepted', 'declined'));
+
+create policy "members cancel or remove their friendships"
+on public.friend_requests for delete to authenticated
+using (
+  (requester_id = (select auth.uid()) and status = 'pending')
+  or (
+    (requester_id = (select auth.uid()) or recipient_id = (select auth.uid()))
+    and status in ('accepted', 'declined')
+  )
+);
 
 -- 13. Publicações: todos podem publicar; só o autor ou admin edita/remove.
 create policy "posts_select_published"

@@ -3,7 +3,7 @@
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUp, BookOpen, BriefcaseBusiness, Menu, MessageCircle, Plus, Sparkles, Users } from 'lucide-react';
-import { MobileBottomNavigation, NavLinks } from '@/components/nav';
+import { MobileAppHeader, MobileBottomNavigation, NavLinks } from '@/components/nav';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -81,9 +81,10 @@ export default function Chatbot() {
 
   return (
     <div className="chat-app">
+      <MobileAppHeader />
       {sidebarOpen && <button className="chat-backdrop" type="button" aria-label="Fechar navegação" onClick={() => setSidebarOpen(false)} />}
       <aside className={`chat-sidebar${sidebarOpen ? ' is-open' : ''}`} aria-label="Navegação principal">
-        <Link className="chat-brand" href="/">
+        <Link className="chat-brand" href="/comunidade">
           <span className="chat-brand-mark">TE</span>
           <span>Teacher Eric<small>AI Coach</small></span>
         </Link>

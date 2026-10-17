@@ -29,8 +29,10 @@ npm run dev
 ## Rotas
 - `/` landing page
 - `/entrar` login e registo reais via Supabase Auth
-- `/aluno` dashboard demonstrativo
-- `/comunidade` feed de publicações, gostos e comentários via Supabase
+- `/aluno` redireciona para `/comunidade`
+- `/comunidade` feed principal de publicações, gostos, comentários e membros
+- `/pesquisar` pesquisa membros e publicações
+- `/amizades` pedidos recebidos/enviados e lista de amigos
 - `/chatbot` interface de tutor e endpoint de servidor `/api/chat`
 - `/perfil` edição do perfil do aluno e cartão de membro da comunidade
 - `/admin` painel inicial; **a proteção de papel admin ainda deve ser implementada antes de produção**
@@ -45,6 +47,8 @@ Para permitir fotografias de perfil, executa também `supabase/migrations/202610
 Para permitir que cada membro edite os próprios comentários, executa `supabase/migrations/20261016_comment_editing.sql` no SQL Editor do Supabase. Os membros podem abrir perfis públicos pela lista da comunidade e ver as publicações de cada pessoa; autores podem editar ou apagar as próprias publicações e comentários.
 
 Para adicionar tipo de membro (aluno/professor), profissão, centro/instituição e experiência aos perfis, executa `supabase/migrations/20261017_member_profile_details.sql` no SQL Editor do Supabase. Os membros podem editar estes dados no próprio perfil; os perfis públicos têm separadores de novidades, contactos da comunidade e informações sobre o Teacher Eric.
+
+Para ativar pedidos de amizade, aceitações e remoção de amigos, executa `supabase/migrations/20261017_friend_requests.sql` no SQL Editor do Supabase. Esta migração cria a tabela `friend_requests`, restringe a leitura aos participantes e aplica RLS às operações de envio, resposta, cancelamento e remoção. Sem executar a migração, a pesquisa e o feed continuam disponíveis, mas as ações de amizade apresentam o erro devolvido pelo Supabase.
 
 ## Estado real e limitações
 - Login/registo usam Supabase Auth se as variáveis estiverem configuradas.

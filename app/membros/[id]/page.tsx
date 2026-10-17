@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { BookOpen, Building2, GraduationCap, MessageCircle, Newspaper, Search, ThumbsUp, Users } from 'lucide-react';
+import { FriendshipButton } from '@/components/friendship';
 import { Shell } from '@/components/nav';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
@@ -168,6 +169,7 @@ export default function MemberProfilePage() {
             <span><strong>{posts.length}</strong> publicações</span>
             <span><strong>{joinedDate || '—'}</strong> membro desde</span>
           </div>
+          <FriendshipButton memberId={profile.id} />
         </section>
         {profile.experience && <section className="panel member-profile-experience">
           <h2>Experiência</h2>

@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Home, Image as ImageIcon, MessageCircle, Pencil, Search, Send, ThumbsUp, Trash2, UserRound, Users, X } from 'lucide-react';
+import { Home, Image as ImageIcon, MessageCircle, Pencil, Search, Send, ThumbsUp, Trash2, UserRound, Users, X } from 'lucide-react';
 import { Shell } from '@/components/nav';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
@@ -197,7 +197,7 @@ export default function Comunidade() {
           <h2>Atalhos</h2>
           <a className="is-active" href="#community-feed"><Home size={19} /> Feed da comunidade</a>
           <a href="#community-members"><Users size={19} /> Membros</a>
-          <Link href="/aluno"><BookOpen size={19} /> Área de aprendizagem</Link>
+          <Link href="/amizades"><Users size={19} /> Pedidos de amizade</Link>
           <Link href="/perfil"><UserRound size={19} /> O meu perfil</Link>
           <Link href="/chatbot"><MessageCircle size={19} /> Eric AI Coach</Link>
         </div>

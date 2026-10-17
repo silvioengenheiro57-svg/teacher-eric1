@@ -4,21 +4,23 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, House, Image as ImageIcon, Menu, MessageCircle, Plus, Search, Send, Shield, UserRound, Users } from 'lucide-react';
+import { House, Image as ImageIcon, Menu, MessageCircle, Plus, Search, Send, Shield, UserRound, UserRoundPlus, Users } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const links = [
-	{ href: '/aluno', label: 'Área do aluno', icon: BookOpen },
-	{ href: '/comunidade', label: 'Comunidade', icon: Users },
+	{ href: '/comunidade', label: 'Feed', icon: House },
+	{ href: '/comunidade#community-members', label: 'Membros', icon: Users },
+	{ href: '/pesquisar', label: 'Pesquisar', icon: Search },
+	{ href: '/amizades', label: 'Amizades', icon: UserRoundPlus },
 	{ href: '/mensagens', label: 'Mensagens', icon: Send },
 	{ href: '/chatbot', label: 'Eric AI Coach', icon: MessageCircle },
 	{ href: '/perfil', label: 'Meu perfil', icon: UserRound },
 	{ href: '/admin', label: 'Administração', icon: Shield },
 ];
 const mobileLinks = [
-	{ href: '/aluno', label: 'Início', icon: House },
-	{ href: '/comunidade', label: 'Comunidade', icon: Users },
-	{ href: '/mensagens', label: 'Mensagens', icon: Send },
+	{ href: '/comunidade', label: 'Início', icon: House },
+	{ href: '/comunidade#community-members', label: 'Membros', icon: Users },
+	{ href: '/amizades', label: 'Amigos', icon: UserRoundPlus },
 	{ href: '/chatbot', label: 'Chat IA', icon: MessageCircle },
 	{ href: '/perfil', label: 'Perfil', icon: UserRound },
 ];
@@ -48,13 +50,13 @@ export function NavLinks({ className, onNavigate }: { className?: string; onNavi
 export function MobileBottomNavigation() {
 	const pathname = usePathname();
 	return <nav className="mobile-bottom-nav" aria-label="Navegação principal">
-		{mobileLinks.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-label={label} title={label} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? 'page' : undefined}>
+		{mobileLinks.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-label={label} title={label} aria-current={!href.includes('#') && (pathname === href || pathname.startsWith(`${href}/`)) ? 'page' : undefined}>
 			<Icon size={25} strokeWidth={2.1} /><span>{label}</span>
 		</Link>)}
 	</nav>;
 }
 
-function MobileAppHeader() {
+export function MobileAppHeader() {
 	const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 	const [avatarUrl, setAvatarUrl] = useState('');
 	useEffect(() => {
@@ -69,14 +71,15 @@ function MobileAppHeader() {
 		return () => { cancelled = true; };
 	}, [supabase]);
 	return <header className="mobile-app-header">
-		<Link href="/aluno" className="mobile-app-brand"><span>Teacher Eric<span className="mobile-brand-period">.</span></span></Link>
+		<Link href="/comunidade" className="mobile-app-brand"><span>Teacher Eric<span className="mobile-brand-period">.</span></span></Link>
 		<div className="mobile-app-actions">
 			<Link className="mobile-app-action" href="/comunidade#community-post" aria-label="Criar publicação" title="Criar publicação"><Plus size={23} strokeWidth={2.4} /></Link>
-			<Link className="mobile-app-action" href="/comunidade#community-members" aria-label="Procurar membros" title="Procurar membros"><Search size={22} strokeWidth={2.3} /></Link>
+			<Link className="mobile-app-action" href="/pesquisar" aria-label="Pesquisar membros e publicações" title="Pesquisar membros e publicações"><Search size={22} strokeWidth={2.3} /></Link>
 			<details className="mobile-app-menu">
 				<summary className="mobile-app-action" aria-label="Abrir menu" title="Abrir menu"><Menu size={23} strokeWidth={2.3} /></summary>
 				<nav aria-label="Mais opções">
 					<Link href="/perfil">{avatarUrl ? <img src={avatarUrl} alt="" /> : <UserRound size={18} />}<span>O meu perfil</span></Link>
+					<Link href="/amizades"><UserRoundPlus size={18} /><span>Pedidos de amizade</span></Link>
 					<Link href="/mensagens"><Send size={18} /><span>Mensagens</span></Link>
 					<Link href="/chatbot"><MessageCircle size={18} /><span>Eric AI Coach</span></Link>
 					<Link href="/comunidade#community-members"><Users size={18} /><span>Encontrar membros</span></Link>
@@ -90,7 +93,7 @@ function MobileAppHeader() {
 export function Nav() {
 	return <>
 		<aside className="sidebar">
-			<Link href="/" className="brand"><span className="brand-mark"><Image src="/images/teacher-eric.png" alt="" width={42} height={42} className="brand-teacher-image" priority /></span><span>Teacher Eric<small>English community</small></span></Link>
+			<Link href="/comunidade" className="brand"><span className="brand-mark"><Image src="/images/teacher-eric.png" alt="" width={42} height={42} className="brand-teacher-image" priority /></span><span>Teacher Eric<small>English community</small></span></Link>
 			<NavLinks />
 			<div className="sidebar-note">Practice makes progress.</div>
 		</aside>
