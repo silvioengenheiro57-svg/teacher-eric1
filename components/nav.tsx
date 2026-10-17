@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, House, MessageCircle, Send, Shield, UserRound, Users } from 'lucide-react';
+import { BookOpen, House, Image as ImageIcon, Menu, MessageCircle, Plus, Search, Send, Shield, UserRound, Users } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const links = [
@@ -48,8 +48,8 @@ export function NavLinks({ className, onNavigate }: { className?: string; onNavi
 export function MobileBottomNavigation() {
 	const pathname = usePathname();
 	return <nav className="mobile-bottom-nav" aria-label="Navegação principal">
-		{mobileLinks.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? 'page' : undefined}>
-			<Icon size={19} strokeWidth={1.8} /><span>{label}</span>
+		{mobileLinks.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-label={label} title={label} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? 'page' : undefined}>
+			<Icon size={25} strokeWidth={2.1} /><span>{label}</span>
 		</Link>)}
 	</nav>;
 }
@@ -69,8 +69,21 @@ function MobileAppHeader() {
 		return () => { cancelled = true; };
 	}, [supabase]);
 	return <header className="mobile-app-header">
-		<Link href="/aluno" className="mobile-app-brand"><Image src="/images/teacher-eric.png" alt="" width={32} height={32} /><span><strong>Teacher Eric</strong><small>Learn · Connect · Grow</small></span></Link>
-		<Link className="mobile-app-profile" href="/perfil" aria-label="O meu perfil">{avatarUrl ? <img src={avatarUrl} alt="" /> : <UserRound size={19} />}</Link>
+		<Link href="/aluno" className="mobile-app-brand"><span>Teacher Eric<span className="mobile-brand-period">.</span></span></Link>
+		<div className="mobile-app-actions">
+			<Link className="mobile-app-action" href="/comunidade#community-post" aria-label="Criar publicação" title="Criar publicação"><Plus size={23} strokeWidth={2.4} /></Link>
+			<Link className="mobile-app-action" href="/comunidade#community-members" aria-label="Procurar membros" title="Procurar membros"><Search size={22} strokeWidth={2.3} /></Link>
+			<details className="mobile-app-menu">
+				<summary className="mobile-app-action" aria-label="Abrir menu" title="Abrir menu"><Menu size={23} strokeWidth={2.3} /></summary>
+				<nav aria-label="Mais opções">
+					<Link href="/perfil">{avatarUrl ? <img src={avatarUrl} alt="" /> : <UserRound size={18} />}<span>O meu perfil</span></Link>
+					<Link href="/mensagens"><Send size={18} /><span>Mensagens</span></Link>
+					<Link href="/chatbot"><MessageCircle size={18} /><span>Eric AI Coach</span></Link>
+					<Link href="/comunidade#community-members"><Users size={18} /><span>Encontrar membros</span></Link>
+					<Link href="/perfil/cartao"><ImageIcon size={18} /><span>Cartão de membro</span></Link>
+				</nav>
+			</details>
+		</div>
 	</header>;
 }
 

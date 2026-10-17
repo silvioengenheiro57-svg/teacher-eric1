@@ -11,6 +11,10 @@ type Profile = {
   avatar_url: string | null;
   bio: string;
   english_level: string;
+  member_type: 'student' | 'teacher';
+  profession: string;
+  center_name: string;
+  experience: string;
   created_at: string;
 };
 
@@ -28,6 +32,10 @@ export default function Perfil() {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [englishLevel, setEnglishLevel] = useState('A1');
+  const [memberType, setMemberType] = useState<'student' | 'teacher'>('student');
+  const [profession, setProfession] = useState('');
+  const [centerName, setCenterName] = useState('');
+  const [experience, setExperience] = useState('');
   const [postCount, setPostCount] = useState(0);
   const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState('');
@@ -52,7 +60,7 @@ export default function Perfil() {
       setUserId(user.id);
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .select('full_name, avatar_url, bio, english_level, created_at')
+        .select('full_name, avatar_url, bio, english_level, member_type, profession, center_name, experience, created_at')
         .eq('id', user.id)
         .maybeSingle();
       if (profileError) throw profileError;
@@ -68,6 +76,10 @@ export default function Perfil() {
       setName(loadedProfile.full_name || '');
       setBio(loadedProfile.bio || '');
       setEnglishLevel(loadedProfile.english_level || 'A1');
+      setMemberType(loadedProfile.member_type || 'student');
+      setProfession(loadedProfile.profession || '');
+      setCenterName(loadedProfile.center_name || '');
+      setExperience(loadedProfile.experience || '');
     } catch (loadError) {
       setError(loadError instanceof Error ? `Não foi possível carregar o perfil: ${loadError.message}` : 'Não foi possível carregar o perfil.');
     } finally {
@@ -123,6 +135,10 @@ export default function Perfil() {
     setName(profile?.full_name || '');
     setBio(profile?.bio || '');
     setEnglishLevel(profile?.english_level || 'A1');
+    setMemberType(profile?.member_type || 'student');
+    setProfession(profile?.profession || '');
+    setCenterName(profile?.center_name || '');
+    setExperience(profile?.experience || '');
     setSelectedAvatar(null);
     setAvatarPreview('');
     setError('');
@@ -156,10 +172,14 @@ export default function Perfil() {
           full_name: cleanName,
           bio: bio.trim(),
           english_level: englishLevel,
+          member_type: memberType,
+          profession: profession.trim(),
+          center_name: centerName.trim(),
+          experience: experience.trim(),
           avatar_url: avatarUrl,
         })
         .eq('id', userId)
-        .select('full_name, avatar_url, bio, english_level, created_at')
+        .select('full_name, avatar_url, bio, english_level, member_type, profession, center_name, experience, created_at')
         .single();
       if (updateError) throw new Error(`Não foi possível guardar o perfil: ${updateError.message}`);
 
@@ -167,6 +187,10 @@ export default function Perfil() {
       setName(data.full_name);
       setBio(data.bio || '');
       setEnglishLevel(data.english_level);
+      setMemberType(data.member_type);
+      setProfession(data.profession || '');
+      setCenterName(data.center_name || '');
+      setExperience(data.experience || '');
       setSelectedAvatar(null);
       setAvatarPreview('');
       setNotice('Perfil atualizado. As alterações já aparecem no cartão de membro.');
@@ -195,10 +219,10 @@ export default function Perfil() {
           <section className="profile-overview">
             <div className="profile-overview-person">
               <div className="profile-overview-avatar">{visibleAvatar ? <img src={visibleAvatar} alt={`Fotografia de ${displayName}`} /> : initials(displayName)}</div>
-              <div><h2>{displayName}</h2><p>@{displayName.toLowerCase().replace(/\s+/g, '.')}</p><span>{englishLevel} · Nível de inglês</span><small>{bio.trim() || 'Partilha um pouco sobre ti com a comunidade.'}</small></div>
+              <div><h2>{displayName}</h2><p>@{displayName.toLowerCase().replace(/\s+/g, '.')}</p><span>{memberType === 'teacher' ? 'Professor' : 'Aluno'} · {englishLevel}</span><small>{[profession, centerName].filter(Boolean).join(' · ') || bio.trim() || 'Partilha um pouco sobre ti com a comunidade.'}</small></div>
             </div>
             <div className="profile-overview-stats"><div><strong>{postCount}</strong><span>Publicações</span></div><div><strong>{englishLevel}</strong><span>Nível</span></div><div><strong>{joinedDate || '—'}</strong><span>Membro desde</span></div></div>
-            <div className="profile-overview-actions"><button type="button" className="button" onClick={() => setEditing(true)}>Editar dados</button><Link href="/perfil/cartao" className="button button-light">Ver cartão de membro</Link></div>
+            <div className="profile-overview-actions"><button type="button" className="button" onClick={() => setEditing(true)}>Editar dados</button><Link href={`/membros/${userId}`} className="button button-light">Ver perfil e publicações</Link><Link href="/perfil/cartao" className="button button-light">Ver cartão de membro</Link></div>
           </section>
           {editing && <div className="profile-editor-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) closeEditor(); }}>
             <section className="profile-editor-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-editor-title">
@@ -222,6 +246,17 @@ export default function Perfil() {
                   <input id="profile-name" className="profile-text-input" type="text" autoComplete="name" maxLength={80} value={name} onChange={(event) => setName(event.target.value)} required />
                   <div className="profile-label-row"><label className="profile-label" htmlFor="profile-bio">Bio</label><small>{bio.length}/160</small></div>
                   <textarea id="profile-bio" className="profile-text-input profile-bio-input" maxLength={160} rows={4} value={bio} onChange={(event) => setBio(event.target.value)} placeholder="Conta à comunidade o que estás a aprender ou o que gostas de fazer." />
+                  <label className="profile-label" htmlFor="profile-member-type">Sou</label>
+                  <select id="profile-member-type" className="profile-text-input profile-select" value={memberType} onChange={(event) => setMemberType(event.target.value as 'student' | 'teacher')}>
+                    <option value="student">Aluno</option>
+                    <option value="teacher">Professor</option>
+                  </select>
+                  <label className="profile-label" htmlFor="profile-profession">Profissão</label>
+                  <input id="profile-profession" className="profile-text-input" type="text" maxLength={100} value={profession} onChange={(event) => setProfession(event.target.value)} placeholder="Ex.: Professor de inglês" />
+                  <label className="profile-label" htmlFor="profile-center">Nome do centro / instituição</label>
+                  <input id="profile-center" className="profile-text-input" type="text" maxLength={120} value={centerName} onChange={(event) => setCenterName(event.target.value)} placeholder="Escola, centro de formação ou instituição" />
+                  <div className="profile-label-row"><label className="profile-label" htmlFor="profile-experience">Experiência</label><small>{experience.length}/1200</small></div>
+                  <textarea id="profile-experience" className="profile-text-input profile-bio-input" maxLength={1200} rows={5} value={experience} onChange={(event) => setExperience(event.target.value)} placeholder="Partilha a tua experiência de ensino ou aprendizagem." />
                   <label className="profile-label" htmlFor="profile-level">Nível de inglês</label>
                   <select id="profile-level" className="profile-text-input profile-select" value={englishLevel} onChange={(event) => setEnglishLevel(event.target.value)}>
                     {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => <option key={level} value={level}>{level}</option>)}

@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Home, MessageCircle, Search, Send, ThumbsUp, UserRound, Users, X } from 'lucide-react';
+import { BookOpen, Home, Image as ImageIcon, MessageCircle, Pencil, Search, Send, ThumbsUp, Trash2, UserRound, Users, X } from 'lucide-react';
 import { Shell } from '@/components/nav';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
@@ -27,6 +27,11 @@ export default function Comunidade() {
   const [userId, setUserId] = useState('');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [body, setBody] = useState('');
+  const [composerExpanded, setComposerExpanded] = useState(false);
+  const [editingPostId, setEditingPostId] = useState('');
+  const [postEditDraft, setPostEditDraft] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState('');
+  const [commentEditDraft, setCommentEditDraft] = useState('');
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [memberSearch, setMemberSearch] = useState('');
   const [activeMember, setActiveMember] = useState<Profile | null>(null);
@@ -88,7 +93,7 @@ export default function Comunidade() {
     setSending(true); setError(''); setNotice('');
     const { error: insertError } = await supabase.from('posts').insert({ author_id: userId, body: cleanBody, title: '', kind: 'community' });
     if (insertError) setError(`Não foi possível publicar: ${insertError.message}`);
-    else { setBody(''); setNotice('Publicação partilhada com a comunidade.'); await loadFeed(userId); }
+    else { setBody(''); setComposerExpanded(false); setNotice('Publicação partilhada com a comunidade.'); await loadFeed(userId); }
     setSending(false);
   }
 
@@ -100,6 +105,54 @@ export default function Comunidade() {
     const { error: insertError } = await supabase.from('comments').insert({ post_id: postId, author_id: userId, body: cleanBody });
     if (insertError) setError(`Não foi possível comentar: ${insertError.message}`);
     else { setCommentDrafts((prev) => ({ ...prev, [postId]: '' })); await loadFeed(userId); }
+  }
+
+  async function savePostEdit(event: FormEvent, postId: string) {
+    event.preventDefault();
+    const cleanBody = postEditDraft.trim();
+    if (!cleanBody || !userId) return;
+    const { error: updateError } = await supabase.from('posts').update({ body: cleanBody }).eq('id', postId).eq('author_id', userId);
+    if (updateError) setError(`Não foi possível editar a publicação: ${updateError.message}`);
+    else {
+      setEditingPostId('');
+      setPostEditDraft('');
+      setNotice('Publicação atualizada.');
+      await loadFeed(userId);
+    }
+  }
+
+  async function deletePost(postId: string) {
+    if (!userId || !window.confirm('Queres apagar esta publicação? Esta ação não pode ser desfeita.')) return;
+    const { error: deleteError } = await supabase.from('posts').delete().eq('id', postId).eq('author_id', userId);
+    if (deleteError) setError(`Não foi possível apagar a publicação: ${deleteError.message}`);
+    else {
+      setNotice('Publicação apagada.');
+      await loadFeed(userId);
+    }
+  }
+
+  async function saveCommentEdit(event: FormEvent, commentId: string) {
+    event.preventDefault();
+    const cleanBody = commentEditDraft.trim();
+    if (!cleanBody || !userId) return;
+    const { error: updateError } = await supabase.from('comments').update({ body: cleanBody }).eq('id', commentId).eq('author_id', userId);
+    if (updateError) setError(`Não foi possível editar o comentário: ${updateError.message}`);
+    else {
+      setEditingCommentId('');
+      setCommentEditDraft('');
+      setNotice('Comentário atualizado.');
+      await loadFeed(userId);
+    }
+  }
+
+  async function deleteComment(commentId: string) {
+    if (!userId || !window.confirm('Queres apagar este comentário?')) return;
+    const { error: deleteError } = await supabase.from('comments').delete().eq('id', commentId).eq('author_id', userId);
+    if (deleteError) setError(`Não foi possível apagar o comentário: ${deleteError.message}`);
+    else {
+      setNotice('Comentário apagado.');
+      await loadFeed(userId);
+    }
   }
 
   async function toggleLike(post: Post) {
@@ -154,12 +207,13 @@ export default function Comunidade() {
       <section className="community-timeline" id="community-feed" aria-label="Feed da comunidade">
         {error && <div className="notice community-alert" role="alert">{error}</div>}
         {notice && <div className="notice community-alert community-success" role="status">{notice}</div>}
-        <form className="panel community-composer" onSubmit={createPost}>
+        <form className={`panel community-composer${composerExpanded ? ' is-expanded' : ''}`} onSubmit={createPost}>
           <div className="community-composer-top">
             <MemberAvatar member={profile} />
             <label className="community-composer-prompt" htmlFor="community-post">O que gostarias de partilhar?</label>
+            <Link className="community-composer-photo" href="/perfil" aria-label="Atualizar fotografia de perfil"><ImageIcon size={22} /><span>Foto</span></Link>
           </div>
-          <textarea id="community-post" className="community-post-input" value={body} onChange={(e) => setBody(e.target.value)} maxLength={3000} required placeholder="Partilha uma ideia, dúvida ou progresso…" rows={3} />
+          <textarea id="community-post" className="community-post-input" value={body} onFocus={() => setComposerExpanded(true)} onChange={(e) => setBody(e.target.value)} maxLength={3000} required placeholder="O que estás a pensar?" rows={3} />
           <div className="community-composer-footer"><small>{body.length}/3000</small><button className="button" type="submit" disabled={sending || !body.trim() || !userId}>{sending ? 'A publicar…' : 'Publicar'}</button></div>
         </form>
         <div className="community-feed-heading"><h2>Publicações recentes</h2><button type="button" className="community-refresh" onClick={() => { setLoading(true); void loadFeed(userId || undefined); }}>Atualizar</button></div>
@@ -169,11 +223,20 @@ export default function Comunidade() {
           const liked = post.reactions.some((reaction) => reaction.user_id === userId);
           return <article className="panel post community-post" key={post.id}>
             <div className="community-post-heading">
-              <MemberAvatar member={post.author} />
-              <div className="community-post-author-text"><strong>{post.author?.full_name || 'Membro'}</strong><small>{post.author?.english_level || 'Membro'} · {dateLabel(post.created_at)}</small></div>
+              <Link className="community-author-link" href={`/membros/${post.author_id}`} aria-label={`Ver perfil de ${post.author?.full_name || 'membro'}`}>
+                <MemberAvatar member={post.author} />
+                <span className="community-post-author-text"><strong>{post.author?.full_name || 'Membro'}</strong><small>{post.author?.english_level || 'Membro'} · {dateLabel(post.created_at)}</small></span>
+              </Link>
+              {post.author_id === userId && <div className="community-owner-actions">
+                <button type="button" className="community-owner-action" onClick={() => { setEditingPostId(post.id); setPostEditDraft(post.body); }} aria-label="Editar publicação"><Pencil size={15} /><span>Editar</span></button>
+                <button type="button" className="community-owner-action is-danger" onClick={() => void deletePost(post.id)} aria-label="Apagar publicação"><Trash2 size={15} /><span>Apagar</span></button>
+              </div>}
             </div>
             {post.title && <h2>{post.title}</h2>}
-            <p className="community-post-body">{post.body}</p>
+            {editingPostId === post.id ? <form className="community-inline-editor" onSubmit={(event) => void savePostEdit(event, post.id)}>
+              <textarea aria-label="Editar publicação" value={postEditDraft} onChange={(event) => setPostEditDraft(event.target.value)} maxLength={3000} rows={4} required />
+              <div><button type="button" className="button button-light" onClick={() => setEditingPostId('')}>Cancelar</button><button type="submit" className="button" disabled={!postEditDraft.trim()}>Guardar</button></div>
+            </form> : <p className="community-post-body">{post.body}</p>}
             <div className="community-post-stats"><span>{post.reactions.length ? `${post.reactions.length} gostos` : ''}</span><span>{post.comments.length} comentários</span></div>
             <div className="community-post-actions">
               <button type="button" className={liked ? 'community-like is-liked' : 'community-like'} aria-pressed={liked} onClick={() => void toggleLike(post)}><ThumbsUp size={17} /><span>{liked ? 'Gostaste' : 'Gosto'}</span></button>
@@ -182,8 +245,18 @@ export default function Comunidade() {
             </div>
             <div className="community-comments">
               {post.comments.map((comment) => <div className="community-comment" key={comment.id}>
-                <MemberAvatar member={comment.author} className="community-comment-avatar" />
-                <div className="community-comment-bubble"><strong>{comment.author?.full_name || 'Membro'}</strong><p>{comment.body}</p></div>
+                <Link href={`/membros/${comment.author_id}`} aria-label={`Ver perfil de ${comment.author?.full_name || 'membro'}`}><MemberAvatar member={comment.author} className="community-comment-avatar" /></Link>
+                <div className="community-comment-bubble">
+                  <Link className="community-comment-author" href={`/membros/${comment.author_id}`}><strong>{comment.author?.full_name || 'Membro'}</strong></Link>
+                  {editingCommentId === comment.id ? <form className="community-inline-editor" onSubmit={(event) => void saveCommentEdit(event, comment.id)}>
+                    <textarea aria-label="Editar comentário" value={commentEditDraft} onChange={(event) => setCommentEditDraft(event.target.value)} maxLength={2000} rows={2} required />
+                    <div><button type="button" className="button button-light" onClick={() => setEditingCommentId('')}>Cancelar</button><button type="submit" className="button" disabled={!commentEditDraft.trim()}>Guardar</button></div>
+                  </form> : <p>{comment.body}</p>}
+                  {comment.author_id === userId && <div className="community-owner-actions community-comment-actions">
+                    <button type="button" className="community-owner-action" onClick={() => { setEditingCommentId(comment.id); setCommentEditDraft(comment.body); }} aria-label="Editar comentário"><Pencil size={14} /><span>Editar</span></button>
+                    <button type="button" className="community-owner-action is-danger" onClick={() => void deleteComment(comment.id)} aria-label="Apagar comentário"><Trash2 size={14} /><span>Apagar</span></button>
+                  </div>}
+                </div>
               </div>)}
               <form className="community-comment-form" onSubmit={(event) => void addComment(event, post.id)}>
                 <MemberAvatar member={profile} className="community-comment-avatar" />
@@ -200,8 +273,10 @@ export default function Comunidade() {
         <label className="community-search"><Search size={16} /><input aria-label="Procurar membros" placeholder="Procurar membros" value={memberSearch} onChange={(event) => setMemberSearch(event.target.value)} /></label>
         <div className="community-member-list">
           {members.filter((member) => member.id !== userId && (member.full_name || '').toLowerCase().includes(memberSearch.toLowerCase())).map((member) => <div className="community-member-row" key={member.id}>
-            <MemberAvatar member={member} />
-            <div className="community-member-name"><strong>{member.full_name || 'Membro'}</strong><small>{member.english_level || 'Aluno'}</small></div>
+            <Link className="community-member-profile-link" href={`/membros/${member.id}`} aria-label={`Ver perfil de ${member.full_name || 'membro'}`}>
+              <MemberAvatar member={member} />
+              <span className="community-member-name"><strong>{member.full_name || 'Membro'}</strong><small>{member.english_level || 'Aluno'}</small></span>
+            </Link>
             <button type="button" className="community-message-button" onClick={() => void openConversation(member)} aria-label={`Enviar mensagem a ${member.full_name || 'membro'}`} title="Enviar mensagem"><MessageCircle size={17} /></button>
           </div>)}
           {!loading && members.filter((member) => member.id !== userId).length === 0 && <p className="community-members-empty">Ainda não há outros membros.</p>}

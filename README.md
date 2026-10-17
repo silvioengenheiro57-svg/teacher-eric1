@@ -42,6 +42,10 @@ O browser usa apenas a chave pública/anon do Supabase, protegida por RLS. Nunca
 
 Para permitir fotografias de perfil, executa também `supabase/migrations/20261015_profile_avatars.sql` no SQL Editor do Supabase. A migration cria o bucket público `avatars` (JPG, PNG e WebP até 5 MB) e limita carregamentos/alterações aos ficheiros do próprio membro.
 
+Para permitir que cada membro edite os próprios comentários, executa `supabase/migrations/20261016_comment_editing.sql` no SQL Editor do Supabase. Os membros podem abrir perfis públicos pela lista da comunidade e ver as publicações de cada pessoa; autores podem editar ou apagar as próprias publicações e comentários.
+
+Para adicionar tipo de membro (aluno/professor), profissão, centro/instituição e experiência aos perfis, executa `supabase/migrations/20261017_member_profile_details.sql` no SQL Editor do Supabase. Os membros podem editar estes dados no próprio perfil; os perfis públicos têm separadores de novidades, contactos da comunidade e informações sobre o Teacher Eric.
+
 ## Estado real e limitações
 - Login/registo usam Supabase Auth se as variáveis estiverem configuradas.
 - A API de chatbot usa `OPENAI_API_KEY` no servidor e devolve JSON; não grava ainda o histórico na base de dados e precisa de autenticação/rate limiting antes de produção.

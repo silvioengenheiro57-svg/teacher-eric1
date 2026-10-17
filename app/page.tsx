@@ -26,7 +26,7 @@ export default function Home() {
         </div>
         <div className="landing-photo-wrap">
           <div className="landing-photo" role="img" aria-label="Alunos numa aula de inglês com o professor" />
-          <div className="landing-quote"><strong>“Practice makes progress.”</strong><span>— Teacher Eric</span></div>
+          <div className="landing-quote"><strong>Aqui você não aprende apenas INGLÊS, você aprende a VIDA!</strong><span>— Teacher Eric</span></div>
         </div>
       </section>
 

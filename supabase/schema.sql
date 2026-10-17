@@ -10,6 +10,11 @@ create table public.profiles (
   bio text not null default '',
   english_level text not null default 'A1'
     check (english_level in ('A1','A2','B1','B2','C1','C2')),
+  member_type text not null default 'student'
+    check (member_type in ('student', 'teacher')),
+  profession text not null default '',
+  center_name text not null default '',
+  experience text not null default '',
   role public.member_role not null default 'member',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -129,11 +134,11 @@ revoke all on public.profiles, public.posts, public.comments,
   public.reactions, public.chat_messages from anon, authenticated;
 
 grant select on public.profiles to authenticated;
-grant update (full_name, avatar_url, bio, english_level)
+grant update (full_name, avatar_url, bio, english_level, member_type, profession, center_name, experience)
   on public.profiles to authenticated;
 
 grant select, insert, update, delete on public.posts to authenticated;
-grant select, insert, delete on public.comments to authenticated;
+grant select, insert, update (body), delete on public.comments to authenticated;
 grant select, insert, delete on public.reactions to authenticated;
 grant select, insert on public.chat_messages to authenticated;
 
@@ -188,6 +193,11 @@ with check (
     where p.id = post_id and p.status = 'published'
   )
 );
+
+create policy "comments_update_own_or_admin"
+on public.comments for update to authenticated
+using (author_id = (select auth.uid()) or public.is_admin())
+with check (author_id = (select auth.uid()) or public.is_admin());
 
 create policy "comments_delete_own_or_admin"
 on public.comments for delete to authenticated
