@@ -63,8 +63,29 @@ export function MobileAppHeader() {
 	const menuRef = useRef<HTMLDetailsElement>(null);
 	const [signOutError, setSignOutError] = useState('');
 	const [signingOut, setSigningOut] = useState(false);
+	const [isAdmin, setIsAdmin] = useState(false);
+	const [adminCheckError, setAdminCheckError] = useState('');
 	const isFeed = pathname === '/comunidade';
 	const isProfile = pathname === '/perfil';
+
+	useEffect(() => {
+		let cancelled = false;
+		async function checkAdmin() {
+			if (!isFeed) return;
+			const { data: { user }, error: authError } = await supabase.auth.getUser();
+			if (authError) {
+				if (!cancelled) setAdminCheckError(`Não foi possível verificar o acesso de administrador: ${authError.message}`);
+				return;
+			}
+			if (!user) return;
+			const { data, error } = await supabase.rpc('is_admin');
+			if (cancelled) return;
+			if (error) setAdminCheckError(`Não foi possível verificar o acesso de administrador: ${error.message}`);
+			else setIsAdmin(data === true);
+		}
+		void checkAdmin();
+		return () => { cancelled = true; };
+	}, [isFeed, supabase]);
 
 	async function signOut() {
 		if (signingOut) return;
@@ -93,6 +114,8 @@ export function MobileAppHeader() {
 						menuRef.current?.removeAttribute('open');
 					}}><UserRound size={18} /><span>Alterar as minhas informações</span></button> : <>
 						<Link href="/sobre-teacher-eric" onClick={() => menuRef.current?.removeAttribute('open')}><BookOpen size={18} /><span>Tudo sobre Teacher Eric</span></Link>
+						{isAdmin && <Link href="/admin" onClick={() => menuRef.current?.removeAttribute('open')}><Shield size={18} /><span>Administração</span></Link>}
+						{adminCheckError && <p className="mobile-menu-error" role="alert">{adminCheckError}</p>}
 						{signOutError && <p className="mobile-menu-error" role="alert">{signOutError}</p>}
 						<button type="button" onClick={() => void signOut()} disabled={signingOut}>
 							{signingOut ? <span className="mobile-menu-spinner" aria-hidden="true" /> : <X size={18} />}
