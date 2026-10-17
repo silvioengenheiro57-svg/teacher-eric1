@@ -22,6 +22,7 @@ const mobileLinks = [
 	{ href: '/amizades', label: 'Amigos', icon: UserRoundPlus },
 	{ href: '/mensagens', label: 'Mensagens', icon: Send },
 	{ href: '/chatbot', label: 'Chatbot', icon: MessageCircle },
+	{ href: '/perfil', label: 'Perfil', icon: UserRound },
 ];
 
 export function NavLinks({ className, onNavigate }: { className?: string; onNavigate?: () => void }) {
@@ -56,11 +57,14 @@ export function MobileBottomNavigation() {
 }
 
 export function MobileAppHeader() {
+	const pathname = usePathname();
 	const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 	const router = useRouter();
 	const menuRef = useRef<HTMLDetailsElement>(null);
 	const [signOutError, setSignOutError] = useState('');
 	const [signingOut, setSigningOut] = useState(false);
+	const isFeed = pathname === '/comunidade';
+	const isProfile = pathname === '/perfil';
 
 	async function signOut() {
 		if (signingOut) return;
@@ -79,20 +83,25 @@ export function MobileAppHeader() {
 
 	return <header className="mobile-app-header">
 		<Link href="/comunidade" className="mobile-app-brand"><span>Teacher Eric<span className="mobile-brand-period">.</span></span></Link>
-		<div className="mobile-app-actions">
-			<Link className="mobile-app-action" href="/pesquisar" aria-label="Pesquisar membro" title="Pesquisar membro"><Search size={22} strokeWidth={2.3} /></Link>
+		{(isFeed || isProfile) && <div className="mobile-app-actions">
+			{isFeed && <Link className="mobile-app-action" href="/pesquisar" aria-label="Pesquisar membro" title="Pesquisar membro"><Search size={22} strokeWidth={2.3} /></Link>}
 			<details className="mobile-app-menu" ref={menuRef}>
 				<summary className="mobile-app-action" aria-label="Abrir menu" title="Abrir menu"><Menu size={23} strokeWidth={2.3} /></summary>
-				<nav aria-label="Menu da comunidade">
-					<Link href="/sobre-teacher-eric" onClick={() => menuRef.current?.removeAttribute('open')}><BookOpen size={18} /><span>Tudo sobre Teacher Eric</span></Link>
-					{signOutError && <p className="mobile-menu-error" role="alert">{signOutError}</p>}
-					<button type="button" onClick={() => void signOut()} disabled={signingOut}>
-						{signingOut ? <span className="mobile-menu-spinner" aria-hidden="true" /> : <X size={18} />}
-						<span>{signingOut ? 'A terminar sessão…' : 'Terminar sessão'}</span>
-					</button>
+				<nav aria-label={isProfile ? 'Menu do perfil' : 'Menu da comunidade'}>
+					{isProfile ? <button type="button" onClick={() => {
+						window.dispatchEvent(new Event('teacher-eric:edit-profile'));
+						menuRef.current?.removeAttribute('open');
+					}}><UserRound size={18} /><span>Alterar as minhas informações</span></button> : <>
+						<Link href="/sobre-teacher-eric" onClick={() => menuRef.current?.removeAttribute('open')}><BookOpen size={18} /><span>Tudo sobre Teacher Eric</span></Link>
+						{signOutError && <p className="mobile-menu-error" role="alert">{signOutError}</p>}
+						<button type="button" onClick={() => void signOut()} disabled={signingOut}>
+							{signingOut ? <span className="mobile-menu-spinner" aria-hidden="true" /> : <X size={18} />}
+							<span>{signingOut ? 'A terminar sessão…' : 'Terminar sessão'}</span>
+						</button>
+					</>}
 				</nav>
 			</details>
-		</div>
+		</div>}
 	</header>;
 }
 

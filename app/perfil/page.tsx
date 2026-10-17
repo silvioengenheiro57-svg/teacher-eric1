@@ -92,6 +92,14 @@ export default function Perfil() {
   }, [loadProfile]);
 
   useEffect(() => {
+    function editProfile() {
+      setEditing(true);
+    }
+    window.addEventListener('teacher-eric:edit-profile', editProfile);
+    return () => window.removeEventListener('teacher-eric:edit-profile', editProfile);
+  }, []);
+
+  useEffect(() => {
     if (!editing) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !saving) closeEditor();
@@ -222,7 +230,7 @@ export default function Perfil() {
               <div><h2>{displayName}</h2><p>@{displayName.toLowerCase().replace(/\s+/g, '.')}</p><span>{memberType === 'teacher' ? 'Professor' : 'Aluno'} · {englishLevel}</span><small>{[profession, centerName].filter(Boolean).join(' · ') || bio.trim() || 'Partilha um pouco sobre ti com a comunidade.'}</small></div>
             </div>
             <div className="profile-overview-stats"><div><strong>{postCount}</strong><span>Publicações</span></div><div><strong>{englishLevel}</strong><span>Nível</span></div><div><strong>{joinedDate || '—'}</strong><span>Membro desde</span></div></div>
-            <div className="profile-overview-actions"><button type="button" className="button" onClick={() => setEditing(true)}>Editar dados</button><Link href={`/membros/${userId}`} className="button button-light">Ver perfil e publicações</Link><Link href="/perfil/cartao" className="button button-light">Ver cartão de membro</Link></div>
+            <div className="profile-overview-actions"><button type="button" className="button" onClick={() => setEditing(true)}>Editar dados</button><Link href={`/membros/${userId}`} className="button button-light">Ver as minhas publicações</Link><Link href="/perfil/cartao" className="button button-light">Ver cartão de membro</Link></div>
           </section>
           {editing && <div className="profile-editor-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) closeEditor(); }}>
             <section className="profile-editor-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-editor-title">

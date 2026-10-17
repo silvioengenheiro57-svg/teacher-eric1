@@ -51,6 +51,8 @@ Para adicionar tipo de membro (aluno/professor), profissão, centro/instituiçã
 
 Para ativar pedidos de amizade, aceitações e remoção de amigos, executa `supabase/migrations/20261017_friend_requests.sql` no SQL Editor do Supabase. Esta migração cria a tabela `friend_requests`, restringe a leitura aos participantes e aplica RLS às operações de envio, resposta, cancelamento e remoção. Sem executar a migração, a pesquisa e o feed continuam disponíveis, mas as ações de amizade apresentam o erro devolvido pelo Supabase.
 
+O histórico do chatbot fica guardado localmente no navegador e separado pelo utilizador autenticado; não é sincronizado entre dispositivos nem gravado no Supabase.
+
 ## Estado real e limitações
 - Login/registo usam Supabase Auth se as variáveis estiverem configuradas.
 - A API de chatbot usa `OPENAI_API_KEY` no servidor e devolve JSON; não grava ainda o histórico na base de dados e precisa de autenticação/rate limiting antes de produção.
